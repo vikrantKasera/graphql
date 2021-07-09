@@ -24,18 +24,19 @@ class IngredientType(DjangoObjectType):
         fields = ("id", "name", "notes", "category")
 
 class Query(UserQuery, MeQuery, graphene.ObjectType):
-    search_ingredients = graphene.List(IngredientType,search=graphene.String())
+    search_ingredients = graphene.List(IngredientType, category =graphene.ID(),search=graphene.String())
     all_user = graphene.List(UserType)
     all_category = graphene.List(CategoryType)
     all_ingredients = graphene.List(IngredientType)
     category_by_name = graphene.Field(CategoryType, name=graphene.String(required=True))
 
-    def resolve_search_ingredients(self, info, search=None, **kwargs):
+
+    def resolve_search_ingredients(self, info,search=None,**kwargs):
         # The value sent with the search parameter will be in the args variable
         if search:
             filter = (
-                    Q(name__icontains=search) |
-                    Q(notes__icontains=search)
+                    Q(name__icontains=search, category=kwargs["category"]) |
+                    Q(notes__icontains=search, category=kwargs["category"])
             )
             return Ingredient.objects.filter(filter)
 
